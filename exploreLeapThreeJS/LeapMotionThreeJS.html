@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<canvas id="displayArea" width="200" height="100" style="background:#dddddd;"></canvas>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Leap Threejs Template R5</title>
+<meta charset="utf-8">
+</head>
+<body style="font-weight: 600; font-style: normal; font-variant: normal; font-stretch: normal; font-size: 12pt; line-height: normal; font-family: monospace; margin: 0px; overflow: hidden;" data-pinterest-extension-installed="cr1.38.4">
+<script src="./Leap Threejs Template R5_files/leap-0.6.3.js"></script>
+<script src="./Leap Threejs Template R5_files/leap-plugins-0.1.8.js"></script>
+<script src="./Leap Threejs Template R5_files/three.min.js"></script>
+<script src="./Leap Threejs Template R5_files/TrackballControls.js"></script>
+<script src="./Leap Threejs Template R5_files/stats.min.js"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script>
+    
+	var fingerlings = {};
+	var handies = {};
+	var loop = {};
+	
+    /*
+    new InteractablePlane(buttonMesh, Leap.loopController),
+    {
+      locking: false,
+      longThrow: longThrow
+    }
+    ).on('press', function(mesh){
+
+       mesh.material.color.setHex(0xccccff);
+    }).on('release', function(mesh){
+       mesh.material.color.setHex(0xeeeeee);
+    });
+    */
+    
+  //  buttonMesh.position.set(0, buttonMesh.geometry.parameters.height / 2 - longThrow / 2, -longThrow / 2);
+    //scene.add(buttonMesh);
+
+
+
+	var info, stats, renderer, scene, camera, controls;
+
+	init();
+
+	function init() {
+
+		document.body.style.cssText = 'font: 800 14pt monospace; margin: 10; overflow: hidden;' ;
+
+		var info = $(document.body).append( document.createElement( 'div' ) );
+        
+		info.css({cssText: 'left: 20px; position: absolute; '});
+		info.html('<a href="" ><h1>' + document.title + '</h1></a>' +
+			'<div id=handData ></div>' +
+			'<div id=fingerData ></div>' +
+		'');
+	
+		stats = new Stats();
+		stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0; z-index: 100; ';
+		$(document.body).append( stats.domElement );
+
+		renderer = new THREE.WebGLRenderer( { alpha: 1, antialias: true, clearColor: 0xffffff }  );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		$(document.body).append( renderer.domElement );
+
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 5000 );
+		camera.position.set( 600, 600, 600 );
+
+		controls = new THREE.TrackballControls( camera, renderer.domElement );
+
+		scene = new THREE.Scene();
+       
+// ground box
+		var geometry = new THREE.BoxGeometry( 600, 2, 600 );
+		material = new THREE.MeshNormalMaterial();
+		var mesh = new THREE.Mesh( geometry, material );
+		mesh.position.set( 0, -1, 0 );
+		scene.add( mesh );
+
+		mesh = new THREE.GridHelper( 250, 10 );
+		scene.add( mesh );
+
+// axes
+		var axis = new THREE.AxisHelper( 250 );
+		scene.add( axis );
+
+		renderer.render( scene, camera );
+
+	}
+
+	loop.animate = function( frame ) {
+
+		frame.hands.forEach( function( hand, index ) {
+
+			var handy = ( handies[index] || ( handies[index] = new Handy()) );    
+			handy.outputData( index, hand );
+
+			hand.fingers.forEach( function( finger, index ) {
+
+				var fingerling = ( fingerlings[index] || ( fingerlings[index] = new Fingerling() ) );  
+				fingerling.outputData( index, finger );
+
+			});
+
+		});
+
+		renderer.render( scene, camera );
+		controls.update();
+		stats.update();
+
+	}
+
+	loop = Leap.loop( loop.animate );
+	loop.use( 'screenPosition', { scale: 0.25 } ); // use = plugin
+
+	var Handy = function() {
+		var handy = this;
+		var msg = $(handData).append( document.createElement( 'div' ) );
+
+		var geometry = new THREE.BoxGeometry( 50, 20, 50 );
+		var material = new THREE.MeshNormalMaterial();
+		var box = new THREE.Mesh( geometry, material );
+		scene.add( box );
+
+		handy.outputData = function( index, hand  ) {
+
+			msg.innerHTML = 'Hand id:' + index + ' x:' + hand.stabilizedPalmPosition[0].toFixed(0) + 
+				' y:' + hand.stabilizedPalmPosition[1].toFixed(0) + ' z:' + hand.stabilizedPalmPosition[2].toFixed(0);
+
+			box.position.set( hand.stabilizedPalmPosition[0], hand.stabilizedPalmPosition[1], hand.stabilizedPalmPosition[2] );
+
+			box.rotation.set( hand.pitch(), -hand.yaw(), hand.roll() );
+
+		};
+
+	};
+
+	  var geometry = new THREE.BoxGeometry( 40, 40, 40 );
+      cube = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+      color : Math.random() * 0xfefefe
+      
+      }));
+      cube.position.set(0,20,50)
+      
+      scene.add( cube );
+      var rotateCube = function(){
+    	cube.rotation.x += 0.01;
+    	cube.rotation.y += 0.02;
+    	renderer.render(scene, camera);
+    	window.requestAnimationFrame(rotateCube);
+      };
+      
+      
+  rotateCube();
+// Finger Method
+	var Fingerling = function() {
+
+		var fingerling = this;
+		var msg = $(fingerData).append( document.createElement( 'div' ) );
+
+		var tip = addPhalange();
+		var dip = addPhalange();
+		var pip = addPhalange();
+		var mcp = addPhalange();
+		var carp = addPhalange();
+
+		fingerling.outputData = function( index, finger ) {
+
+			msg.innerHTML = 'Finger Method: ' +
+				'finger id:' + index + ' tip x:' + finger.tipPosition[0].toFixed(0) + 
+				' y:' + finger.tipPosition[1].toFixed(0) + ' z:' + finger.tipPosition[2].toFixed(0);
+			var fingerPosition = {
+			    fingerTipPosition:[finger.tipPosition[0], finger.tipPosition[1],finger.tipPosition[2]],
+			    fingerDipPosition:[finger.dipPosition[1], finger.dipPosition[1],finger.dipPosition[2]],
+			  
+				
+			}
+					console.log("hi");
+
+			console.log(fingerPosition);	
+			tip.position.set( finger.tipPosition[0], finger.tipPosition[1], finger.tipPosition[2] );
+			dip.position.set( finger.dipPosition[0], finger.dipPosition[1], finger.dipPosition[2] );
+			pip.position.set( finger.pipPosition[0], finger.pipPosition[1], finger.pipPosition[2] );
+			mcp.position.set( finger.mcpPosition[0], finger.mcpPosition[1], finger.mcpPosition[2] );
+			carp.position.set( finger.carpPosition[0], finger.carpPosition[1], finger.carpPosition[2] );
+
+			updatePhalange( tip, dip );
+			updatePhalange( dip, pip );
+			updatePhalange( pip, mcp );
+
+			if ( finger.type > 0 ) {
+
+				updatePhalange( mcp, carp );
+
+			}
+
+		};
+
+	};
+
+// Bone Method
+	var Fingerling4 = function() {
+
+		var fingerling = this;
+		var msg = $(fingerData).append( document.createElement( 'div' ) );
+
+		var phalanges = [];
+
+		for (var i = 0; i < 4; i++) {
+			phalange = addPhalange();
+			phalanges.push( phalange )
+		}
+
+		fingerling.outputData = function( index, finger ) {
+
+			msg.innerHTML = 'Bone Method ~ ' +
+				'finger tip: ' + index + ' x:' + finger.tipPosition[0].toFixed(0) + 
+				' y:' + finger.tipPosition[1].toFixed(0) + ' z:' + finger.tipPosition[2].toFixed(0);
+
+//console.log( finger );
+
+			for (var i = 0; i < 4; i++) {
+				bone = finger.bones[ i ];
+				cen = bone.center();
+				len = bone.length;
+
+				phalange = phalanges[ i ];
+				phalange.position.set( cen[0], cen[1], cen[2] );
+				if ( index > 0 || i > 0 ) {
+					phalange.scale.z = len;
+				}
+			}
+
+            phalanges[1].lookAt( v( finger.pipPosition[0], finger.pipPosition[1], finger.pipPosition[2]  ) );
+            phalanges[2].lookAt( v( finger.dipPosition[0], finger.dipPosition[1], finger.dipPosition[2]  ) );
+			phalanges[3].lookAt( v( finger.tipPosition[0], finger.tipPosition[1], finger.tipPosition[2]  ) );
+			if ( index > 0 ) {
+				phalanges[0].lookAt( v( finger.mcpPosition[0], finger.mcpPosition[1], finger.mcpPosition[2]  ) );
+			}
+
+		};
+
+	};
+
+	function addPhalange() {
+
+		geometry = new THREE.BoxGeometry( 15, 15, 1 );
+		material = new THREE.MeshNormalMaterial();
+		phalange = new THREE.Mesh( geometry, material );
+		scene.add( phalange );
+		return phalange;
+
+	}
+
+	function updatePhalange( phalange, nextPhalange ) {
+
+			phalange.lookAt( nextPhalange.position );
+			length = phalange.position.distanceTo( nextPhalange.position );
+			phalange.translateZ( 0.5 * length );
+			phalange.scale.set( 1, 1, length );
+
+	}
+
+	function v(  x, y, z){ return new THREE.Vector3( x, y, z ); }
+
+	Leap.loopController.setBackground(true)
+
+
+</script><div style="left: 20px; position: absolute;"><a href=""><h1>LeapMotion ThreeJS+json demo</h1></a><div id="handData"><div>Hand id:0 x:-91 y:84 z:27</div></div><div id="fingerData"><div>Bone Method ~ finger tip: 0 x:-68 y:97 z:8</div><div>Bone Method ~ finger tip: 1 x:-112 y:69 z:-4</div><div>Bone Method ~ finger tip: 2 x:-119 y:59 z:-3</div><div>Bone Method ~ finger tip: 3 x:-159 y:80 z:22</div><div>Bone Method ~ finger tip: 4 x:-181 y:61 z:30</div></div></div><div id="stats" style="position: absolute; right: 0px; top: 0px; z-index: 100;"><div id="fps" style="padding: 0px 0px 3px 3px; text-align: left; background-color: rgb(0, 0, 34);"><div id="fpsText" style="color: rgb(0, 255, 255); font-family: Helvetica, Arial, sans-serif; font-size: 9px; font-weight: bold; line-height: 15px;">21 FPS (0-60)</div><div id="fpsGraph" style="position: relative; width: 74px; height: 30px; background-color: rgb(0, 255, 255);"><span style="width: 1px; height: 20.7px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21.6px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 19.5px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 12.9px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 14.4px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 12px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 12px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 12px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 16.8px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 23.7px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 20.7px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 25.2px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21.9px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21.6px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21.6px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21.6px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 16.5px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 18px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 20.4px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 15.3px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 18px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 19.8px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 13.8px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 12px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 16.5px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 16.5px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 20.1px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21.6px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21.3px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 20.7px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21.6px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21.6px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 18.6px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 23.7px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 18.6px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 20.1px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 20.1px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 15.6px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21.9px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21.3px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 18.3px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 22.2px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 21.6px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 24.6px; float: left; background-color: rgb(17, 17, 51);"></span><span style="width: 1px; height: 23.7px; float: left; background-color: rgb(17, 17, 51);"></span></div></div><div id="ms" style="padding: 0px 0px 3px 3px; text-align: left; display: none; background-color: rgb(0, 34, 0);"><div id="msText" style="color: rgb(0, 255, 0); font-family: Helvetica, Arial, sans-serif; font-size: 9px; font-weight: bold; line-height: 15px;">14 MS (5-47676)</div><div id="msGraph" style="position: relative; width: 74px; height: 30px; background-color: rgb(0, 255, 0);"><span style="width: 1px; height: 25.05px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.2px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.75px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.05px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.75px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.2px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.05px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 14.85px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.35px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.75px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.2px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.9px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.05px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.05px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.9px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.05px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.05px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.75px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.35px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.6px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.2px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.2px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.75px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.2px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.6px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.35px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.05px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.45px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.35px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.2px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.45px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.65px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.45px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 26.25px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 27.6px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.65px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.3px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.65px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.3px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.8px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.15px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.8px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.45px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.5px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.9px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.45px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.65px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.3px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.65px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.45px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.65px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.3px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.5px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.6px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.5px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.2px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.15px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.8px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.3px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.65px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.3px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.8px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.15px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.8px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.15px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.8px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.3px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.65px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.3px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.65px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.05px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 24.75px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 25.05px; float: left; background-color: rgb(17, 51, 17);"></span><span style="width: 1px; height: 27.9px; float: left; background-color: rgb(17, 51, 17);"></span></div></div></div><canvas width="1280" height="684" style="width: 1280px; height: 684px;"></canvas>
+
+<div id="techsmith-snagitchrome-extension"></div></body></html>
