@@ -19,7 +19,9 @@
 	<body>
 
 		<script src="js/three.min.js"></script>
+		<script src="js/leap.min.js"></script>
 		<script src="js/OBJLoader.js"></script>
+		<script src="js/leap.screen-position.js"></script>
 
 		<script>
 
@@ -42,7 +44,7 @@
 				document.body.appendChild( container );
 
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-				camera.position.z = 100;
+				camera.position.z = 300;
 
 				// scene
 
@@ -59,7 +61,7 @@
 				var plane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshBasicMaterial({
 					color: 'red'
 				}));
-				plane.position.z = -1000;
+				plane.position.z = -500;
 				plane.overdraw = true;
 				scene.add(plane);
 
@@ -124,6 +126,47 @@
 				window.addEventListener( 'resize', onWindowResize, false );
 
 			}
+
+
+			//
+			var displayHands = {};
+
+			Leap.loop(function(frame) {
+
+				frame.hands.forEach(function(hand, index) {
+
+					var displayHand = ( displayHand[index] || (displayHands[index] = new objectHand()) );
+					displayHand.setTransform(hand.screenPosition(), hand.roll());
+
+				});
+
+			}).use('screenPosition', {scale: 0.25});
+
+
+			var objectHand = function() {
+				var img = document.createElement('img');
+				img.src = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/109794/cat_2.png';
+				img.style.position = 'absolute';
+				img.onload = function () {
+					this.setTransform([window.innerWidth/2,window.innerHeight/2], 0);
+					document.body.appendChild(img);
+				}
+
+				this.setTransform = function(position, rotation) {
+
+					img.style.left = position[0] - img.width  / 2 + 'px';
+					img.style.top  = position[1] - img.height / 2 + 'px';
+
+					img.style.transform = 'rotate(' + -rotation + 'rad)';
+
+					img.style.webkitTransform = img.style.MozTransform = img.style.msTransform =
+						img.style.OTransform = img.style.transform;
+
+				};
+
+			};
+			//
+
 
 			function onWindowResize() {
 
