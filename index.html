@@ -67,9 +67,6 @@
 
 				var handObject = function() {
 					this.setTransform = function(position, rotation) {
-						objectNum++;
-
-
 						//var geometry = new THREE.BoxGeometry( 100, 100, 100 );
 						//var texture = THREE.ImageUtils.loadTexture( 'files/grass.png' );
 						texture.anisotropy = renderer.getMaxAnisotropy();
@@ -77,9 +74,12 @@
 						object[objectNum] = new THREE.Mesh( geometry, material );
 						scene.add(object[objectNum]);
 						object[objectNum].position.x = position[0];
-						object[objectNum].position.y = position[0];
-						object[objectNum].position.z = position[0];
+						object[objectNum].position.y = position[1];
+						object[objectNum].position.z = position[2];
 
+						object[objectNum].rotation.x = position[0];
+						object[objectNum].rotation.y = position[1];
+						object[objectNum].rotation.z = position[2];
 					};
 
 				};
