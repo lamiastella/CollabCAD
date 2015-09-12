@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - geometry - cube</title>
+		<title>Clayspace</title>
 		<meta charset="utf-8">
 		<style>
 			body {
@@ -37,9 +37,15 @@
 
 				scene = new THREE.Scene();
 
-				var geometry = new THREE.BoxGeometry( 200, 200, 200 );
+				var geometry = new THREE.BoxGeometry( 100, 100, 100 );
 
-				var texture = THREE.ImageUtils.loadTexture( 'files/crate.gif' );
+
+				var geometry = new THREE.PlaneGeometry( 5, 20, 32 );
+				var material = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide} );
+				var plane = new THREE.Mesh( geometry, material );
+				scene.add( plane );
+
+				var texture = THREE.ImageUtils.loadTexture( 'files/grass.png' );
 				texture.anisotropy = renderer.getMaxAnisotropy();
 
 				var material = new THREE.MeshBasicMaterial( { map: texture } );
@@ -65,9 +71,6 @@
 			function animate() {
 
 				requestAnimationFrame( animate );
-
-				mesh.rotation.x += 0.005;
-				mesh.rotation.y += 0.01;
 
 				renderer.render( scene, camera );
 
