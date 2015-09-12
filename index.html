@@ -15,16 +15,20 @@
 
 		<script src="js/three.min.js"></script>
 		<script src="js/leap.min.js"></script>
+		<script src="js/leap.screen-position.js"></script>
 
 		<script>
-			var camera, scene, renderer;
+			var container, camera, scener, scene, renderer, stats;
+			var controller, controls;
 			var object = [];
-			var i=0;
+			var cats = [];
+			var objectNum=0;
 
 			init();
 			animate();
 
-			function init() {
+			function init(){
+
 				THREE.ImageUtils.crossOrigin = 'anonymous';
 
 				renderer = new THREE.WebGLRenderer();
@@ -32,7 +36,6 @@
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				document.body.appendChild( renderer.domElement );
 
-				//
 
 				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
 				camera.position.z = 200;
@@ -53,13 +56,52 @@
 				var texture = THREE.ImageUtils.loadTexture( 'files/grass.png' );
 				texture.anisotropy = renderer.getMaxAnisotropy();
 				var material = new THREE.MeshBasicMaterial( { map: texture } );
-				object[i] = new THREE.Mesh( geometry, material );
-				scene.add(object[i]);
-				object[i].position.z = 100;
+				object[objectNum] = new THREE.Mesh( geometry, material );
+				scene.add(object[objectNum]);
+				object[objectNum].position.z = 100;
 
 				//
 
 				window.addEventListener( 'resize', onWindowResize, false );
+
+
+				var Cat = function() {
+					var cat = this;
+					var img = document.createElement('img');
+					img.src = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/109794/cat_2.png';
+					img.style.position = 'absolute';
+					img.onload = function () {
+						cat.setTransform([window.innerWidth/2,window.innerHeight/2], 0);
+						document.body.appendChild(img);
+					}
+
+					cat.setTransform = function(position, rotation) {
+
+						img.style.left = position[0] - img.width  / 2 + 'px';
+						img.style.top  = position[1] - img.height / 2 + 'px';
+
+						img.style.transform = 'rotate(' + -rotation + 'rad)';
+
+						img.style.webkitTransform = img.style.MozTransform = img.style.msTransform =
+							img.style.OTransform = img.style.transform;
+
+					};
+
+				};
+
+				Leap.loop(function(frame) {
+
+					frame.hands.forEach(function(hand, index) {
+
+						var cat = ( cats[index] || (cats[index] = new Cat()) );
+						cat.setTransform(hand.screenPosition(), hand.roll());
+
+					});
+
+				}).use('screenPosition', {scale: 0.25});
+
+
+				cats[0] = new Cat();
 
 			}
 
