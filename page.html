@@ -55,6 +55,14 @@
 				directionalLight.position.set( 0, 0, 1 );
 				scene.add( directionalLight );
 
+
+				var plane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshBasicMaterial({
+					color: 'red'
+				}));
+				plane.position.z = -1000;
+				plane.overdraw = true;
+				scene.add(plane);
+
 				// texture
 
 				var manager = new THREE.LoadingManager();
