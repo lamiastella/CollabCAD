@@ -18,7 +18,8 @@
 
 		<script>
 			var camera, scene, renderer;
-			var mesh;
+			var object = [];
+			var i=0;
 
 			init();
 			animate();
@@ -52,8 +53,9 @@
 				var texture = THREE.ImageUtils.loadTexture( 'files/grass.png' );
 				texture.anisotropy = renderer.getMaxAnisotropy();
 				var material = new THREE.MeshBasicMaterial( { map: texture } );
-				mesh = new THREE.Mesh( geometry, material );
-				scene.add( mesh );
+				object[i] = new THREE.Mesh( geometry, material );
+				scene.add(object[i]);
+				object[i].position.z = 100;
 
 				//
 
@@ -74,8 +76,8 @@
 
 				requestAnimationFrame( animate );
 
-				mesh.rotation.x += 0.005;
-				mesh.rotation.y += 0.01;
+				object[0].rotation.x += 0.005;
+				object[0].rotation.y += 0.01;
 
 				renderer.render( scene, camera );
 
