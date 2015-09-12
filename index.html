@@ -34,14 +34,16 @@
 				//
 
 				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-				camera.position.z = 400;
+				camera.position.z = 200;
+				camera.position.y = -300;
+				camera.rotation.x = -200;
 
 				scene = new THREE.Scene();
 
 				var geometry = new THREE.BoxGeometry( 100, 100, 100 );
 
 
-				var plane = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshBasicMaterial({
+				var plane = new THREE.Mesh(new THREE.PlaneGeometry(700, 1000), new THREE.MeshBasicMaterial({
 					color: 'red'
 				}));
 				plane.overdraw = true;
