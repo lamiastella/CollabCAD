@@ -115,7 +115,7 @@
 
 				}, onProgress, onError );
 
-				//
+
 
 				renderer = new THREE.WebGLRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );
@@ -130,37 +130,59 @@
 
 			//
 			var displayHands = {};
+			var temp = 0;
 
 			Leap.loop(function(frame) {
 
 				frame.hands.forEach(function(hand, index) {
+					if(temp == 0){
+						temp = 1;
+					}
+					else{
+						temp = 0;
+					}
 
-					var displayHand = ( displayHand[index] || (displayHands[index] = new objectHand()) );
+					var displayHand = ( displayHands[index] || (displayHands[index] = new objectHand()) );
 					displayHand.setTransform(hand.screenPosition(), hand.roll());
 
+					if(this.type == "left"){
+						if(temp == 0){
+							temp2 = 1;
+						}
+						else{
+							temp2 = 0;
+						}
+						if(this.grabStrength > 70 && this.pinchStrength < 20){
+							if(hand[temp2].type == right){
+								object.rotation = hand[temp2].rotation;
+							}
+						}
+					}
 				});
 
 			}).use('screenPosition', {scale: 0.25});
 
 
 			var objectHand = function() {
-				var img = document.createElement('img');
-				img.src = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/109794/cat_2.png';
-				img.style.position = 'absolute';
-				img.onload = function () {
-					this.setTransform([window.innerWidth/2,window.innerHeight/2], 0);
-					document.body.appendChild(img);
-				}
+				var test = this;
+				var obj = document.createElement('div');
+				obj.style.borderRadius = "100%";
+				obj.style.backgroundColor = "blue";
+				obj.style.width = "30px";
+				obj.style.height = "30px";
+				obj.style.position = 'absolute';
+				//test.setTransform([window.innerWidth/2,window.innerHeight/2], 0);
+				document.body.appendChild(obj);
 
-				this.setTransform = function(position, rotation) {
+				test.setTransform = function(position, rotation) {
 
-					img.style.left = position[0] - img.width  / 2 + 'px';
-					img.style.top  = position[1] - img.height / 2 + 'px';
+					obj.style.left = position[0] - parseInt(obj.style.width)  / 2 + 'px';
+					obj.style.top  = position[1] - parseInt(obj.style.height) / 2 + 'px';
 
-					img.style.transform = 'rotate(' + -rotation + 'rad)';
+					obj.style.transform = 'rotate(' + -rotation + 'rad)';
 
-					img.style.webkitTransform = img.style.MozTransform = img.style.msTransform =
-						img.style.OTransform = img.style.transform;
+					obj.style.webkitTransform = obj.style.MozTransform = obj.style.msTransform =
+						obj.style.OTransform = obj.style.transform;
 
 				};
 
